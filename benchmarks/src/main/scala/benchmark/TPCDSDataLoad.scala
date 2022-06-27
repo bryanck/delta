@@ -104,7 +104,7 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
         if (!partitionTables || tablePartitionKeys(tableName)(0).isEmpty) ""
         else "WHERE " + tablePartitionKeys(tableName)(0) + " IS NOT NULL"
 
-      var tableOptions = ""
+      var tableOptions = "tblproperties('read.parquet.vectorization.enabled'='true','read.split.target-size'='8388608','write.parquet.compression-codec'='snappy','write.metadata.compression-codec'='gzip')"
       runQuery(s"DROP TABLE IF EXISTS $fullTableName", s"drop-table-$tableName")
 
       runQuery(s"""CREATE TABLE $fullTableName

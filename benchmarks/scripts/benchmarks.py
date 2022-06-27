@@ -25,19 +25,21 @@ class BenchmarkSpec:
 
     :param format_name: Spark format name
     :param maven_artifacts: Maven artifact name in x:y:z format
+    :param more_jars: Additional jars
     :param spark_confs: list of spark conf strings in key=value format
     :param benchmark_main_class: Name of main Scala class from the JAR to run
     :param main_class_args: command line args for the main class
     """
     def __init__(
             self, format_name, maven_artifacts, spark_confs,
-            benchmark_main_class, main_class_args, extra_spark_shell_args=None, **kwargs):
+            benchmark_main_class, main_class_args,  more_jars=None, extra_spark_shell_args=None, **kwargs):
         if main_class_args is None:
             main_class_args = []
         if extra_spark_shell_args is None:
             extra_spark_shell_args = []
         self.format_name = format_name
         self.maven_artifacts = maven_artifacts
+        self.more_jars = more_jars
         self.spark_confs = spark_confs
         self.benchmark_main_class = benchmark_main_class
         self.benchmark_main_class_args = main_class_args
@@ -63,8 +65,9 @@ class BenchmarkSpec:
         main_class_args = ' '.join(self.benchmark_main_class_args)
         spark_shell_args_str = ' '.join(self.extra_spark_shell_args)
         spark_submit_cmd = (
-            f"spark-submit {spark_shell_args_str} " +
+            f"spark-submit --driver-java-options='-Diceberg.worker.num-threads=8' {spark_shell_args_str} " +
             (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
+            (f"--jars {self.more_jars} " if self.more_jars else "") +
             f"{spark_conf_str} --class {self.benchmark_main_class} " +
             f"{benchmark_jar_path} {main_class_args}"
         )
@@ -77,10 +80,11 @@ class BenchmarkSpec:
             print(f"conf={conf}")
             spark_conf_str += f"""--conf "{conf}" """
         spark_shell_args_str = ' '.join(self.extra_spark_shell_args)
+        jars = f"{benchmark_jar_path},{self.more_jars}" if self.more_jars else benchmark_jar_path
         spark_shell_cmd = (
-                f"spark-shell {spark_shell_args_str} " +
+                f"spark-shell --driver-java-options='-Diceberg.worker.num-threads=8' {spark_shell_args_str} " +
                 (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
-                f"{spark_conf_str} --jars {benchmark_jar_path} -I {benchmark_init_file_path}"
+                f"{spark_conf_str} --jars {jars} -I {benchmark_init_file_path}"
         )
         print(spark_shell_cmd)
         return spark_shell_cmd
@@ -123,18 +127,19 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
     """
     Specification of a benchmark using the Iceberg format
     """
-    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.1", **kwargs):
+    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.2", **kwargs):
         iceberg_spark_confs = [
             "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
-            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog",
-            "spark.sql.catalog.spark_catalog.type=hive"
+            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog",
+            "spark.sql.autoBroadcastJoinThreshold=100000000"
         ]
         self.scala_version = scala_version
         self.spark_version = spark_version
 
         super().__init__(
             format_name="iceberg",
-            maven_artifacts=self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
+            maven_artifacts=None, #self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
+            more_jars="/home/hadoop/iceberg-spark3-runtime.jar",
             spark_confs=iceberg_spark_confs,
             benchmark_main_class=benchmark_main_class,
             main_class_args=main_class_args,
@@ -151,12 +156,12 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
 
 class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
-    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.1"):
+    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.2"):
         super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb, spark_version=spark_version)
 
 
 class IcebergTPCDSBenchmarkSpec(TPCDSBenchmarkSpec, IcebergBenchmarkSpec):
-    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.1"):
+    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.2"):
         super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb, spark_version=spark_version)
 
 # ============== Delta benchmark specifications ==============
