@@ -130,8 +130,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
     def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.2", **kwargs):
         iceberg_spark_confs = [
             "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
-            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog",
-            "spark.sql.autoBroadcastJoinThreshold=100000000"
+            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog"
         ]
         self.scala_version = scala_version
         self.spark_version = spark_version
