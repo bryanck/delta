@@ -58,6 +58,11 @@ object TPCDSBenchmarkConf {
         .valueName("<cloud storage path>")
         .action((x, c) => c.copy(benchmarkPath = Some(x)))
         .text("Cloud path to be used for creating table and generating reports"),
+      opt[String]("db-name")
+        .optional()
+        .valueName("<database name>")
+        .action((x, c) => c.copy(userDefinedDbName = Some(x)))
+        .text("Name of the target database to create with TPC-DS tables in necessary format"),
       opt[String]("iterations")
         .optional()
         .valueName("<number of iterations>")
@@ -86,10 +91,11 @@ class TPCDSBenchmark(conf: TPCDSBenchmarkConf) extends Benchmark(conf) {
   )
 
   def runInternal(): Unit = {
+    val dbCatalog = "tabular"
     for ((k, v) <- extraConfs) spark.conf.set(k, v)
     spark.sparkContext.setLogLevel("WARN")
     log("All configs:\n\t" + spark.conf.getAll.toSeq.sortBy(_._1).mkString("\n\t"))
-    spark.sql(s"USE $dbName")
+    spark.sql(s"USE $dbCatalog.$dbName")
     for (iteration <- 1 to conf.iterations) {
       queries.toSeq.sortBy(_._1).foreach { case (name, sql) =>
         runQuery(sql, iteration = Some(iteration), queryName = name)

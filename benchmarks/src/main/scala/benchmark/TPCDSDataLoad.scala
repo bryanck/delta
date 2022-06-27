@@ -74,7 +74,7 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
   def runInternal(): Unit = {
     val dbName = conf.dbName
     val dbLocation = conf.dbLocation(dbName, suffix=benchmarkId.replace("-", "_"))
-    val dbCatalog = "spark_catalog"
+    val dbCatalog = "tabular"
 
     val partitionTables = true
     val primaryKeys = true
@@ -86,14 +86,14 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
       s"s3://devrel-delta-datasets/tpcds-2.13/tpcds_sf${conf.scaleInGB}_parquet/"
     }
 
-    runQuery(s"DROP DATABASE IF EXISTS ${dbName} CASCADE", s"drop-database")
-    runQuery(s"CREATE DATABASE IF NOT EXISTS ${dbName}", s"create-database")
+    runQuery(s"DROP DATABASE IF EXISTS ${dbCatalog}.${dbName} CASCADE", s"drop-database")
+    runQuery(s"CREATE DATABASE IF NOT EXISTS ${dbCatalog}.${dbName}", s"create-database")
 
     // Iterate through all the source tables
     tableNamesTpcds.foreach { tableName =>
       val sourceTableLocation = s"${sourceLocation}/${tableName}/"
       val targetLocation = s"${dbLocation}/${tableName}/"
-      val fullTableName = s"`$dbName`.`$tableName`"
+      val fullTableName = s"`$dbCatalog`.`$dbName`.`$tableName`"
       log(s"Generating $tableName at $dbLocation/$tableName")
       val partitionedBy =
         if (!partitionTables || tablePartitionKeys(tableName)(0).isEmpty) ""
@@ -104,7 +104,14 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
         if (!partitionTables || tablePartitionKeys(tableName)(0).isEmpty) ""
         else "WHERE " + tablePartitionKeys(tableName)(0) + " IS NOT NULL"
 
-      var tableOptions = ""
+      // enable vectorized reads (default is off in Iceberg <= 0.13)
+      // smaller read split size for better parallelism
+      // Delta uses snappy by default so match that
+      // explictly set metrics mode to avoid 32 column cutoff
+      var tableOptions = "tblproperties(" +
+        "'write.parquet.compression-codec'='snappy'," +
+        "'write.metadata.compression-codec'='gzip'," +
+        "'write.metadata.metrics.default'='truncate(16)')"
       runQuery(s"DROP TABLE IF EXISTS $fullTableName", s"drop-table-$tableName")
 
       runQuery(s"""CREATE TABLE $fullTableName
