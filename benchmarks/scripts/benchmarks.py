@@ -130,14 +130,15 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
     def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.2", **kwargs):
         iceberg_spark_confs = [
             "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
-            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog"
+            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkCatalog",
+            "spark.sql.catalog.spark_catalog.io-impl=org.apache.iceberg.aws.s3.S3FileIO"
         ]
         self.scala_version = scala_version
         self.spark_version = spark_version
 
         super().__init__(
             format_name="iceberg",
-            maven_artifacts=None, #self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
+            maven_artifacts=self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
             more_jars="/home/hadoop/iceberg-spark3-runtime.jar",
             spark_confs=iceberg_spark_confs,
             benchmark_main_class=benchmark_main_class,
@@ -151,7 +152,8 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
     @staticmethod
     def iceberg_maven_artifacts(iceberg_version, scala_version, spark_version):
-        return f"org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
+        return "software.amazon.awssdk:bundle:2.17.229,software.amazon.awssdk:url-connection-client:2.17.229"
+        # return f"org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
 
 
 class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
