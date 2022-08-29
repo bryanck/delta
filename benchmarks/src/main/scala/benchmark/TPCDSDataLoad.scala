@@ -104,13 +104,14 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
         if (!partitionTables || tablePartitionKeys(tableName)(0).isEmpty) ""
         else "WHERE " + tablePartitionKeys(tableName)(0) + " IS NOT NULL"
 
-      // enable vectorized reads (default is off in Iceberg <= 0.13)
       // smaller read split size for better parallelism
-      // Delta uses snappy by default so match that
+      // Delta uses snappy by default so match that if desired
+      // compress metadata (Tabular already sets this)
       // explictly set metrics mode to avoid 32 column cutoff
       var tableOptions = "tblproperties(" +
-        "'write.parquet.compression-codec'='snappy'," +
-        "'write.metadata.compression-codec'='gzip'," +
+        //"'read.split.target-size'='8388608'," +
+        //"'write.parquet.compression-codec'='snappy'," +
+        //"'write.metadata.compression-codec'='gzip'," +
         "'write.metadata.metrics.default'='truncate(16)')"
       runQuery(s"DROP TABLE IF EXISTS $fullTableName", s"drop-table-$tableName")
 
