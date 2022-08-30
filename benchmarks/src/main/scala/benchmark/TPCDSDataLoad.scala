@@ -111,6 +111,7 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
       var tableOptions = "tblproperties(" +
         //"'read.split.target-size'='8388608'," +
         //"'write.parquet.compression-codec'='snappy'," +
+        //"'write.delete.parquet.compression-codec'='snappy'," +
         //"'write.metadata.compression-codec'='gzip'," +
         "'write.metadata.metrics.default'='truncate(16)')"
       runQuery(s"DROP TABLE IF EXISTS $fullTableName", s"drop-table-$tableName")
