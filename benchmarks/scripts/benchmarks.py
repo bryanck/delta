@@ -128,6 +128,10 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
     Specification of a benchmark using the Iceberg format
     """
     def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.2", **kwargs):
+
+        # For Iceberg versions without zstd patch, set:
+        # "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192",
+
         # Tabular-only support
         iceberg_spark_confs = [
             "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
@@ -135,8 +139,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
             "spark.sql.catalog.tabular.catalog-impl=org.apache.iceberg.rest.RESTCatalog",
             "spark.sql.catalog.tabular.uri=https://api.dev.tabulardata.io/ws",
             "spark.sql.catalog.tabular.credential=" + os.environ.get('CREDS'),
-            "spark.sql.defaultCatalog=tabular",
-            "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192"
+            "spark.sql.defaultCatalog=tabular"
         ]
         # Tabular-only support, vintage
         # iceberg_spark_confs = [
@@ -146,8 +149,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         #     "spark.sql.catalog.tabular.baseUrl=https://api.dev.tabulardata.io/ws/v1",
         #     "spark.sql.catalog.tabular.signer.baseUrl=https://api.dev.tabulardata.io/ws/v1",
         #     "spark.sql.catalog.tabular.token=" + os.environ.get('CREDS'),
-        #     "spark.sql.defaultCatalog=tabular",
-        #     "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192"
+        #     "spark.sql.defaultCatalog=tabular"
         # ]
         # Tabular + Hive support, needed for data load
         # iceberg_spark_confs = [
@@ -157,8 +159,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         #     "spark.sql.catalog.tabular=org.apache.iceberg.spark.SparkCatalog",
         #     "spark.sql.catalog.tabular.catalog-impl=org.apache.iceberg.rest.RESTCatalog",
         #     "spark.sql.catalog.tabular.uri=https://api.dev.tabulardata.io/ws",
-        #     "spark.sql.catalog.tabular.credential=" + os.environ.get('CREDS'),
-        #     "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192"
+        #     "spark.sql.catalog.tabular.credential=" + os.environ.get('CREDS')
         # ]
         self.scala_version = scala_version
         self.spark_version = spark_version
