@@ -132,6 +132,10 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         # For Iceberg versions without zstd patch, set:
         # "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192",
 
+        # Enable manifest cache (didn't seem to help performance):
+        # "spark.sql.catalog.tabular.io.manifest.cache-enabled=true",
+        # "spark.sql.catalog.tabular.io.manifest.cache.expiration-interval-ms=0",
+
         # Tabular-only support
         iceberg_spark_confs = [
             "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
