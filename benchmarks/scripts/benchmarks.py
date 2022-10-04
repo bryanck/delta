@@ -171,7 +171,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         super().__init__(
             format_name="iceberg",
             maven_artifacts=None, #self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
-            more_jars="/home/hadoop/iceberg-spark3-runtime.jar,/home/hadoop/tabular-client.jar",
+            more_jars="/home/hadoop/iceberg-spark-runtime.jar,/home/hadoop/tabular-client-runtime.jar",
             spark_confs=iceberg_spark_confs,
             benchmark_main_class=benchmark_main_class,
             main_class_args=main_class_args,
