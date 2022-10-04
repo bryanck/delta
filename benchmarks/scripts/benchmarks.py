@@ -142,7 +142,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
             "spark.sql.catalog.tabular=org.apache.iceberg.spark.SparkCatalog",
             "spark.sql.catalog.tabular.catalog-impl=org.apache.iceberg.rest.RESTCatalog",
             "spark.sql.catalog.tabular.uri=https://api.dev.tabulardata.io/ws",
-            "spark.sql.catalog.tabular.credential=" + os.environ.get('CREDS'),
+            "spark.sql.catalog.tabular.credential=" + os.environ.get('TABULAR_CREDS'),
             "spark.sql.defaultCatalog=tabular"
         ]
         # Tabular-only support, vintage
