@@ -145,8 +145,6 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
             "spark.sql.catalog.tabular.credential=" + os.environ.get('TABULAR_CREDS'),
             "spark.sql.catalog.tabular.warehouse=" + os.environ.get('TABULAR_WAREHOUSE'),
             "spark.sql.catalog.tabular.snapshot-loading-mode=refs",
-            "spark.sql.catalog.tabular.http-client.type=apache",
-            "spark.sql.catalog.tabular.http-client.apache.max-connections=64",
             "spark.sql.defaultCatalog=tabular"
         ]
         # Tabular-only support, vintage
