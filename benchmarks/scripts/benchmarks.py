@@ -127,7 +127,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
     """
     Specification of a benchmark using the Iceberg format
     """
-    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.2", **kwargs):
+    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.3", **kwargs):
 
         # For Iceberg versions without zstd patch, set:
         # "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192",
@@ -142,12 +142,16 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
             "spark.sql.catalog.tabular=org.apache.iceberg.spark.SparkCatalog",
             "spark.sql.catalog.tabular.catalog-impl=org.apache.iceberg.rest.RESTCatalog",
             "spark.sql.catalog.tabular.uri=https://api.dev.tabulardata.io/ws",
+            "spark.sql.catalog.tabular.s3.signer.uri=https://api.dev.tabulardata.io/ws/v1",
             "spark.sql.catalog.tabular.credential=" + os.environ.get('TABULAR_CREDS'),
             "spark.sql.catalog.tabular.warehouse=" + os.environ.get('TABULAR_WAREHOUSE'),
             "spark.sql.catalog.tabular.snapshot-loading-mode=refs",
+            "spark.sql.catalog.tabular.http-client.type=urlconnection",
+            "spark.driver.extraJavaOptions=-Dsoftware.amazon.awssdk.http.service.impl=software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService",
+            "spark.executor.extraJavaOptions=-Dsoftware.amazon.awssdk.http.service.impl=software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService",
             "spark.sql.defaultCatalog=tabular"
         ]
-        # Tabular-only support, vintage
+        # OLD: Tabular-only support, vintage
         # iceberg_spark_confs = [
         #     "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
         #     "spark.sql.catalog.tabular=org.apache.iceberg.spark.SparkCatalog",
@@ -157,7 +161,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         #     "spark.sql.catalog.tabular.token=" + os.environ.get('CREDS'),
         #     "spark.sql.defaultCatalog=tabular"
         # ]
-        # Tabular + Hive support, needed for data load
+        # OLD: Tabular + Hive support, needed for data load
         # iceberg_spark_confs = [
         #     "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
         #     "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog",
@@ -172,8 +176,8 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
         super().__init__(
             format_name="iceberg",
-            maven_artifacts=None, #self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
-            more_jars="/home/hadoop/iceberg-spark-runtime.jar,/home/hadoop/tabular-client-runtime.jar",
+            maven_artifacts=self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
+            # more_jars="/home/hadoop/iceberg-spark-runtime.jar,/home/hadoop/tabular-client-runtime.jar",
             spark_confs=iceberg_spark_confs,
             benchmark_main_class=benchmark_main_class,
             main_class_args=main_class_args,
@@ -186,16 +190,16 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
     @staticmethod
     def iceberg_maven_artifacts(iceberg_version, scala_version, spark_version):
-        return f"org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
+        return f"software.amazon.awssdk:bundle:2.20.18,software.amazon.awssdk:url-connection-client:2.20.18,org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
 
 
 class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
-    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.2"):
+    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.3"):
         super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb, spark_version=spark_version)
 
 
 class IcebergTPCDSBenchmarkSpec(TPCDSBenchmarkSpec, IcebergBenchmarkSpec):
-    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.2"):
+    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.3"):
         super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb, spark_version=spark_version)
 
 # ============== Delta benchmark specifications ==============

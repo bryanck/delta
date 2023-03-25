@@ -20,8 +20,8 @@ import argparse
 from scripts.benchmarks import *
 
 delta_version = "1.2.0"
-iceberg_version = "0.13.0"
-spark_version = "3.2"
+iceberg_version = "1.2.0"
+spark_version = "3.3"
 
 # Benchmark name to their specifications. See the imported benchmarks.py for details of benchmark.
 
