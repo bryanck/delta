@@ -66,7 +66,7 @@ class BenchmarkSpec:
         spark_shell_args_str = ' '.join(self.extra_spark_shell_args)
         spark_submit_cmd = (
             f"spark-submit {spark_shell_args_str} " +
-            "--repositories https://tabular-repository-public.s3.amazonaws.com/releases" +
+            "--repositories https://tabular-repository-public.s3.amazonaws.com/releases " +
             (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
             (f"--jars {self.more_jars} " if self.more_jars else "") +
             f"{spark_conf_str} --class {self.benchmark_main_class} " +
@@ -84,6 +84,7 @@ class BenchmarkSpec:
         jars = f"{benchmark_jar_path},{self.more_jars}" if self.more_jars else benchmark_jar_path
         spark_shell_cmd = (
                 f"spark-shell {spark_shell_args_str} " +
+                "--repositories https://tabular-repository-public.s3.amazonaws.com/releases " +
                 (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
                 f"{spark_conf_str} --jars {jars} -I {benchmark_init_file_path}"
         )
@@ -146,9 +147,6 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
             "spark.sql.catalog.tabular.credential=" + os.environ.get('TABULAR_CREDS'),
             "spark.sql.catalog.tabular.warehouse=" + os.environ.get('TABULAR_WAREHOUSE'),
             "spark.sql.catalog.tabular.snapshot-loading-mode=refs",
-            "spark.sql.catalog.tabular.http-client.type=urlconnection",
-            "spark.driver.extraJavaOptions=-Dsoftware.amazon.awssdk.http.service.impl=software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService",
-            "spark.executor.extraJavaOptions=-Dsoftware.amazon.awssdk.http.service.impl=software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService",
             "spark.sql.defaultCatalog=tabular"
         ]
         # OLD: Tabular-only support, vintage
@@ -177,7 +175,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         super().__init__(
             format_name="iceberg",
             maven_artifacts=self.iceberg_maven_artifacts(iceberg_version, self.scala_version, self.spark_version),
-            # more_jars="/home/hadoop/iceberg-spark-runtime.jar,/home/hadoop/tabular-client-runtime.jar",
+            # more_jars="/home/hadoop/iceberg-spark-runtime.jar,/home/hadoop/bundle.jar",
             spark_confs=iceberg_spark_confs,
             benchmark_main_class=benchmark_main_class,
             main_class_args=main_class_args,
@@ -190,8 +188,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
     @staticmethod
     def iceberg_maven_artifacts(iceberg_version, scala_version, spark_version):
-        # return f"software.amazon.awssdk:bundle:2.20.18,software.amazon.awssdk:url-connection-client:2.20.18,org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
-        return f"org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version},io.tabular:tabular-client-runtime:1.5.3"
+        return f"software.amazon.awssdk:bundle:2.20.18,org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
 
 
 class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
