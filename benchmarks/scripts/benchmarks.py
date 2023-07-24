@@ -127,7 +127,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
     """
     Specification of a benchmark using the Iceberg format
     """
-    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.3", **kwargs):
+    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", spark_version="3.4", **kwargs):
 
         # For Iceberg versions without zstd patch, set:
         # "spark.executorEnv.MALLOC_TRIM_THRESHOLD_=8192",
@@ -182,12 +182,12 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
 
 class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
-    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.3"):
+    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.4"):
         super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb, spark_version=spark_version)
 
 
 class IcebergTPCDSBenchmarkSpec(TPCDSBenchmarkSpec, IcebergBenchmarkSpec):
-    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.3"):
+    def __init__(self, iceberg_version, scale_in_gb=1, spark_version="3.4"):
         super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb, spark_version=spark_version)
 
 # ============== Delta benchmark specifications ==============
