@@ -66,6 +66,7 @@ class BenchmarkSpec:
         spark_shell_args_str = ' '.join(self.extra_spark_shell_args)
         spark_submit_cmd = (
             f"spark-submit {spark_shell_args_str} " +
+            "--repositories https://repository.apache.org/content/repositories/orgapacheiceberg-1145 " +
             (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
             (f"--jars {self.more_jars} " if self.more_jars else "") +
             f"{spark_conf_str} --class {self.benchmark_main_class} " +
@@ -83,6 +84,7 @@ class BenchmarkSpec:
         jars = f"{benchmark_jar_path},{self.more_jars}" if self.more_jars else benchmark_jar_path
         spark_shell_cmd = (
                 f"spark-shell {spark_shell_args_str} " +
+                "--repositories https://repository.apache.org/content/repositories/orgapacheiceberg-1145 " +
                 (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
                 f"{spark_conf_str} --jars {jars} -I {benchmark_init_file_path}"
         )
@@ -141,7 +143,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
             "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
             "spark.sql.catalog.tabular=org.apache.iceberg.spark.SparkCatalog",
             "spark.sql.catalog.tabular.catalog-impl=org.apache.iceberg.rest.RESTCatalog",
-            "spark.sql.catalog.tabular.uri=https://api.dev.tabulardata.io/ws",
+            "spark.sql.catalog.tabular.uri=https://api.dev.tabular.io/ws",
             "spark.sql.catalog.tabular.credential=" + os.environ.get('TABULAR_CREDS'),
             "spark.sql.catalog.tabular.warehouse=" + os.environ.get('TABULAR_WAREHOUSE'),
             "spark.sql.defaultCatalog=tabular"
@@ -154,7 +156,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
         #     "spark.sql.catalog.spark_catalog.type=hive",
         #     "spark.sql.catalog.tabular=org.apache.iceberg.spark.SparkCatalog",
         #     "spark.sql.catalog.tabular.catalog-impl=org.apache.iceberg.rest.RESTCatalog",
-        #     "spark.sql.catalog.tabular.uri=https://api.dev.tabulardata.io/ws",
+        #     "spark.sql.catalog.tabular.uri=https://api.dev.tabular.io/ws",
         #     "spark.sql.catalog.tabular.credential=" + os.environ.get('TABULAR_CREDS'),
         #     "spark.sql.catalog.tabular.warehouse=" + os.environ.get('TABULAR_WAREHOUSE')
         # ]
@@ -178,7 +180,7 @@ class IcebergBenchmarkSpec(BenchmarkSpec):
 
     @staticmethod
     def iceberg_maven_artifacts(iceberg_version, scala_version, spark_version):
-        return f"software.amazon.awssdk:bundle:2.20.18,org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version}"
+        return f"org.apache.iceberg:iceberg-spark-runtime-{spark_version}_{scala_version}:{iceberg_version},org.apache.iceberg:iceberg-aws-bundle:{iceberg_version}"
 
 
 class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
