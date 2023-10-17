@@ -66,7 +66,7 @@ class BenchmarkSpec:
         spark_shell_args_str = ' '.join(self.extra_spark_shell_args)
         spark_submit_cmd = (
             f"spark-submit {spark_shell_args_str} " +
-            "--repositories https://repository.apache.org/content/repositories/orgapacheiceberg-1146 " +
+            "--repositories https://tabular-repository-public.s3.amazonaws.com/releases " +
             (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
             (f"--jars {self.more_jars} " if self.more_jars else "") +
             f"{spark_conf_str} --class {self.benchmark_main_class} " +
@@ -84,7 +84,7 @@ class BenchmarkSpec:
         jars = f"{benchmark_jar_path},{self.more_jars}" if self.more_jars else benchmark_jar_path
         spark_shell_cmd = (
                 f"spark-shell {spark_shell_args_str} " +
-                "--repositories https://repository.apache.org/content/repositories/orgapacheiceberg-1146 " +
+                "--repositories https://tabular-repository-public.s3.amazonaws.com/releases " +
                 (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
                 f"{spark_conf_str} --jars {jars} -I {benchmark_init_file_path}"
         )
